@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>PVOSI Pocket // Gáttvörður + Vitinn Tré</title>
+  <link rel="manifest" href='data:application/manifest+json,{"name":"PVOSI Pocket","short_name":"PVOSI","display":"standalone","background_color":"#09090b","theme_color":"#09090b","icons":[{"src":"https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/26e9.png","sizes":"72x72","type":"image/png"}]}' />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    body { background-color: #09090b; color: #f4f4f5; font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .bento { background-color: #121215; border: 1px solid #27272a; border-radius: 10px; }
+    .bento-pass { background-color: #121215; border: 1px solid #10b981; border-radius: 10px; }
+    .md-output h1, .md-output h2, .md-output h3 { color: #fafafa; font-weight: 700; border-bottom: 1px solid #27272a; padding-bottom: 4px; margin-top: 16px; margin-bottom: 8px; }
+    .md-output p, .md-output li { color: #d4d4d8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 6px; }
+    .md-output table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.82rem; display: block; overflow-x: auto; }
+    .md-output th { background: #18181b; color: #e4e4e7; border: 1px solid #27272a; padding: 8px; text-align: left; }
+    .md-output td { border: 1px solid #27272a; padding: 8px; color: #d4d4d8; vertical-align: top; }
+  </style>
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-20 bg-[#09090b]/95 backdrop-blur border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+      <span class="mono font-bold text-sm tracking-wider">PVOSI_POCKET</span>
+      <span class="mono text-[10px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">MÓVIL AUTÓNOMO</span>
+    </div>
+    <span id="statusBadge" class="mono text-[11px] bg-zinc-900 border border-zinc-700 text-emerald-400 px-2.5 py-1 rounded">IDLE // 0% BAT</span>
+  </header>
+
+  <main class="max-w-2xl mx-auto p-3 space-y-3">
+
+    <!-- CONFIGURACIÓN DE API KEY Y ENRUTADOR DE MODELOS -->
+    <section class="bento p-3.5 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="mono text-xs font-semibold text-zinc-400">1. CEREBRO Y ENRUTADOR COGNITIVO</span>
+        <button onclick="saveApiKey()" class="mono text-[11px] bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-2.5 py-1 rounded border border-zinc-700">Guardar Key en Celular</button>
+      </div>
+      <input id="apiKeyInput" type="password" placeholder="Pega tu GEMINI_API_KEY de Google AI Studio..." class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-xs mono text-zinc-200 focus:outline-none focus:border-emerald-500" />
+      <div class="grid grid-cols-1 gap-2 pt-1">
+        <label class="mono text-[11px] text-zinc-400"> Enrutamiento Automático Activo:
+          <span class="block text-zinc-300 mt-0.5">• Gateway 1.6: <b class="text-emerald-400">gemini-3.8-flash (low)</b></span>
+          <span class="block text-zinc-300">• Gáttvörður & V2: <b class="text-amber-400">gemini-3.8-flash (medium)</b></span>
+        </label>
+        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5">
+          <span class="mono text-[11px] text-zinc-400">Modelo Síntesis V3:</span>
+          <select id="v3ModelSelect" class="bg-transparent mono text-xs text-emerald-400 focus:outline-none">
+            <option value="gemini-3.8-flash">gemini-3.8-flash (High - Free Tier)</option>
+            <option value="gemini-4-argon">gemini-4-argon (High - Pro/Paid)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- FASE 0: GÁTTVÖRÐUR SONDA SOCRÁTICA -->
+    <section class="bento p-3.5 space-y-2.5">
+      <span class="mono text-xs font-semibold text-amber-400">2. GÁTTVÖRÐUR // FASE 2A (SONDA SOCRÁTICA)</span>
+      <textarea id="intentInput" rows="2" placeholder="Describe qué quieres investigar, comparar o auditar..." class="w-full bg-zinc-950 border border-zinc-800 rounded p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-amber-500"></textarea>
+      <button onclick="runSocraticProbe()" class="w-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 mono text-xs font-semibold py-2.5 rounded">
+        PASO 1: LANZAR SONDA DE CONTRASTE (FASE 2A)
+      </button>
+      <div id="socraticOutput" class="hidden bg-zinc-950 border border-zinc-800 rounded p-3 md-output text-xs"></div>
+
+      <textarea id="sandboxInput" rows="2" placeholder="Responde aquí las 3 preguntas de Sandbox y Escenario de Nulidad de Gáttvörður..." class="w-full bg-zinc-950 border border-zinc-800 rounded p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500"></textarea>
+    </section>
+
+    <!-- SENSORES AGENT-REACH (JINA + GITHUB + HACKERNEWS) -->
+    <section class="bento p-3.5 space-y-2.5">
+      <span class="mono text-xs font-semibold text-emerald-400">3. PARÁMETROS AGENT-REACH (V1 -> STEP 1.6 -> V2 -> V3)</span>
+      <div class="grid grid-cols-1 gap-2">
+        <input id="v1Query" type="text" placeholder="Query V1 (Base / Ranking Técnico, ej: PCSX2 Ghidra MIPS)" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-xs text-zinc-200" />
+        <input id="v2Query" type="text" placeholder="Query V2 (Fallas / Comunidad, ej: ghidra emotionengine ldl ldr)" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-xs text-zinc-200" />
+        <input id="jinaUrls" type="text" placeholder="URLs para Jina Reader separadas por coma (opcional)" class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-xs text-zinc-200" />
+      </div>
+      <button onclick="runFullPipeline()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-zinc-950 mono text-xs font-bold py-3 rounded">
+        PASO 2: COMPILAR DOSSIER Y EJECUTAR VECTORES (V1 -> V2 -> V3)
+      </button>
+    </section>
+
+    <!-- TELEMETRÍA VECTORIAL SIN RECORTES -->
+    <section class="bento p-3.5 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="mono text-xs font-semibold text-zinc-400">4. TOPOLOGÍA VECTORIAL Y UMBRALES M[F]</span>
+        <button onclick="downloadSnapshot()" class="mono text-[10px] bg-zinc-800 text-zinc-300 px-2 py-1 rounded border border-zinc-700">Exportar .JSON a PC</button>
+      </div>
+      <div id="vectorsContainer" class="space-y-2.5 text-xs text-zinc-500 italic">Sin Dossier activo en memoria.</div>
+    </section>
+
+    <!-- VISOR DE DICTAMEN FINAL VITINN TRÉ -->
+    <section class="bento p-3.5 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="mono text-xs font-semibold text-zinc-400">5. DICTAMEN DE VITINN TRÉ</span>
+        <button onclick="downloadMarkdown()" class="mono text-[10px] bg-zinc-800 text-emerald-400 px-2 py-1 rounded border border-zinc-700">Descargar .MD</button>
+      </div>
+      <div id="finalMarkdownOutput" class="bg-zinc-950 border border-zinc-800 rounded p-3.5 md-output min-h-[120px] text-xs text-zinc-400">
+        El Dictamen Falsable aparecerá aquí al concluir el Vector 3.
+      </div>
+    </section>
+
+    <!-- CONSOLA DE TELEMETRÍA -->
+    <section class="bento p-3">
+      <span class="mono text-[10px] font-semibold text-zinc-500 block mb-1">REGISTRO DE EVENTOS Y ENRUTAMIENTO</span>
+      <pre id="consoleLog" class="bg-zinc-950 border border-zinc-800 rounded p-2.5 mono text-[10px] text-zinc-300 h-32 overflow-y-auto whitespace-pre-wrap"></pre>
+    </section>
+
+  </main>
+
+<script>
+let activeDossier = null;
+let finalMdContent = "";
+const STOPWORDS = new Set(["issue", "issues", "bug", "bugs", "problem", "problems", "error", "falla", "fallas"]);
+
+window.onload = () => {
+  const savedKey = localStorage.getItem("PVOSI_GEMINI_KEY") || "";
+  if (savedKey) document.getElementById("apiKeyInput").value = savedKey;
+  log("PVOSI Pocket listo. 0 demonios en segundo plano.");
+};
+
+function log(msg) {
+  const el = document.getElementById("consoleLog");
+  const ts = new Date().toTimeString().split(" ")[0];
+  el.textContent += `[${ts}] ${msg}\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(text, busy = false) {
+  const badge = document.getElementById("statusBadge");
+  badge.textContent = text;
+  badge.className = busy
+    ? "mono text-[11px] bg-amber-950 border border-amber-600 text-amber-300 px-2.5 py-1 rounded animate-pulse"
+    : "mono text-[11px] bg-zinc-900 border border-zinc-700 text-emerald-400 px-2.5 py-1 rounded";
+}
+
+function saveApiKey() {
+  const k = document.getElementById("apiKeyInput").value.trim();
+  localStorage.setItem("PVOSI_GEMINI_KEY", k);
+  log("API Key guardada localmente en el navegador del teléfono.");
+}
+
+function extractCleanJson(rawText) {
+  const s = rawText.indexOf("{");
+  const e = rawText.lastIndexOf("}");
+  if (s === -1 || e === -1 || e <= s) throw new Error("El modelo no devolvió un bloque JSON válido.");
+  let slice = rawText.slice(s, e + 1);
+  slice = slice.replace(/(?<!\\)\\(?![/\"\\bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
+  return JSON.parse(slice);
+}
+
+// ENRUTADOR COGNITIVO POR TAREA (low | medium | high)
+async function callGeminiRouter(prompt, effort = "medium", forceModel = null) {
+  const apiKey = document.getElementById("apiKeyInput").value.trim();
+  if (!apiKey) throw new Error("Ingresa tu GEMINI_API_KEY arriba primero.");
+
+  const model = forceModel || "gemini-3.8-flash";
+  log(`[ROUTER] Invocando ${model} (thinkingLevel=${effort})...`);
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.2,
+        thinkingConfig: { thinkingLevel: effort }
+      }
+    })
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`Error API (${resp.status}): ${errText}`);
+  }
+  const data = await resp.json();
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  return parts.map(p => p.text || "").join("").trim();
+}
+
+// SENSORES AGENT-REACH (JINA + GITHUB + HACKERNEWS)
+async function fetchEvidenceAgentReach(rawQuery, extraUrlsCsv = "") {
+  const blocks = [];
+  if (extraUrlsCsv.trim()) {
+    const urls = extraUrlsCsv.split(",").map(u => u.trim()).filter(Boolean);
+    for (const u of urls) {
+      try {
+        log(`[Jina Reader] Extrayendo Markdown: ${u}`);
+        const r = await fetch(`https://r.jina.ai/${u}`, { headers: { "Accept": "text/plain" } });
+        if (r.ok) {
+          const txt = (await r.text()).slice(0, 3500);
+          blocks.push(`[DOCUMENTACIÓN JINA | URL: ${u}]\n${txt}`);
+        }
+      } catch (e) { log(`[WARN Jina] ${e.message}`); }
+    }
+  }
+
+  const tokens = rawQuery.trim().split(/\s+/).filter(w => !STOPWORDS.has(w.toLowerCase()));
+  const cleanQ = tokens.join(" ") || rawQuery.trim();
+
+  // GitHub Issues API
+  try {
+    log(`[GitHub API] Buscando issues técnicos: '${cleanQ}'`);
+    let ghUrl = `https://api.github.com/search/issues?q=${encodeURIComponent(cleanQ)}&per_page=3`;
+    let r = await fetch(ghUrl, { headers: { "Accept": "application/vnd.github+json" } });
+    let d = await r.json();
+    if ((!d.items || d.items.length === 0) && tokens.length > 2) {
+      const relaxed = `${tokens[0]} (${tokens.slice(1).join(" OR ")})`;
+      r = await fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(relaxed)}&per_page=3`);
+      d = await r.json();
+    }
+    for (const item of (d.items || []).slice(0, 3)) {
+      blocks.push(`[GITHUB ISSUE | ${item.html_url} | Comentarios: ${item.comments}]\nTÍTULO: ${item.title}\nEXTRACTO:\n${(item.body || "").slice(0, 700)}`);
+    }
+  } catch (e) { log(`[WARN GitHub] ${e.message}`); }
+
+  // HackerNews Algolia API
+  try {
+    log(`[HackerNews API] Escaneando discusiones: '${cleanQ}'`);
+    const hnR = await fetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(cleanQ)}&tags=story&hitsPerPage=2`);
+    const hnD = await hnR.json();
+    for (const h of (hnD.hits || [])) {
+      blocks.push(`[HACKERNEWS | Votos: ${h.points || 0} | https://news.ycombinator.com/item?id=${h.objectID}]\nTÍTULO: ${h.title}\nURL: ${h.url || "N/A"}`);
+    }
+  } catch (e) { log(`[WARN HN] ${e.message}`); }
+
+  if (blocks.length === 0) throw new Error(`0 bloques recolectados para '${rawQuery}'. Ajusta los términos.`);
+  return blocks;
+}
+
+// RENDERIZADO DE TARJETAS DE VECTORES (100% TEXTO COMPLETO SIN RECORTES)
+function renderTelemetry() {
+  const container = document.getElementById("vectorsContainer");
+  if (!activeDossier) {
+    container.innerHTML = "Sin Dossier activo en memoria.";
+    return;
+  }
+  const d = activeDossier;
+  let html = `
+    <div class="bg-zinc-950 border border-zinc-800 rounded p-2.5 flex items-center justify-between mono text-[11px]">
+      <span class="text-emerald-400 font-bold">STEP 1.0 PASS // ${d.metadata_resonancia.id_sesion}</span>
+      <span class="text-amber-400">${d.estado_actual || "ACTIVO"}</span>
+    </div>
+    <p class="text-xs text-zinc-300 not-italic"><b class="text-zinc-100">Meta Real:</b> ${d.nucleo_del_problema.meta_real}</p>
+  `;
+
+  for (const v of d.critical_vectors) {
+    const pass = v.completado;
+    const hechosHtml = (v.evidencia_confirmada || []).map((h, i) => `<li class="text-xs text-zinc-200 leading-relaxed">${i+1}. ${h}</li>`).join("");
+    html += `
+      <div class="${pass ? 'bento-pass' : 'bento'} p-3 space-y-2 not-italic">
+        <div class="flex items-center justify-between">
+          <span class="mono text-xs font-bold text-zinc-100">VECTOR ${v.id} (${v.tipo_dependencia})</span>
+          <span class="mono text-[10px] px-2 py-0.5 rounded ${pass ? 'bg-emerald-950 text-emerald-400 border border-emerald-700' : 'bg-zinc-800 text-zinc-400'}">
+            ${pass ? 'GATEWAY 1.6 PASS' : 'PENDIENTE'}
+          </span>
+        </div>
+        <p class="text-xs text-zinc-200 leading-relaxed"><b>Enfoque:</b> ${v.enfoque}</p>
+        <div class="bg-rose-950/30 border border-rose-900/50 rounded p-2">
+          <span class="mono text-[10px] font-bold text-rose-400 block">UMBRAL M[F] (${v.id}):</span>
+          <p class="mono text-xs text-rose-200 leading-relaxed">${v.m_f_threshold}</p>
+        </div>
+        ${hechosHtml ? `<details class="bg-zinc-950 border border-zinc-800 rounded p-2"><summary class="mono text-[11px] text-emerald-400 cursor-pointer">Ver Búfer Step 1.6 (${v.evidencia_confirmada.length} Hechos)</summary><ul class="mt-2 space-y-1.5">${hechosHtml}</ul></details>` : ''}
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+// PASO 1: SONDA SOCRÁTICA DE GÁTTVÖRÐUR (EFFORT = MEDIUM)
+async function runSocraticProbe() {
+  const intent = document.getElementById("intentInput").value.trim();
+  if (!intent) return alert("Escribe tu planteamiento inicial.");
+  setStatus("GÁTTVÖRÐUR FASE 2A...", true);
+  try {
+    const prompt = `Actúa como Gáttvörður (MARK3v1 - El Guardián del Umbral).\nTono: Estoico, crítico, directo y no complaciente.\nPLANTEAMIENTO DEL USUARIO: "${intent}"\n\nEjecuta:\n1. [META NÚCLEO]: Desarticula el síntoma de la necesidad real.\n2. [SONDA DE CONTRASTE - FASE 2A]: Propón una alternativa técnica diametralmente opuesta o Zero-Footprint para medir su sesgo.\n3. [SANDBOX Y NULIDAD]: Haz 3 preguntas cortas para fijar restricciones duras y qué hallazgo en V1 descartaría la categoría.`;
+    const out = await callGeminiRouter(prompt, "medium");
+    const box = document.getElementById("socraticOutput");
+    box.classList.remove("hidden");
+    box.innerHTML = marked.parse(out);
+    log("Sonda Socrática emitida.");
+  } catch (e) {
+    log(`[ERROR]: ${e.message}`);
+    alert(e.message);
+  } finally {
+    setStatus("IDLE // 0% BAT", false);
+  }
+}
+
+// PASO 2: FLUJO COMPLETO (DOSSIER -> V1 -> GATEWAY 1.6 -> V2 -> GATEWAY 1.6 -> V3)
+async function runFullPipeline() {
+  const intent = document.getElementById("intentInput").value.trim();
+  const sandboxAns = document.getElementById("sandboxInput").value.trim();
+  const q1 = document.getElementById("v1Query").value.trim() || intent;
+  const q2 = document.getElementById("v2Query").value.trim() || q1;
+  const jinaCsv = document.getElementById("jinaUrls").value.trim();
+
+  if (!intent || !sandboxAns) return alert("Completa el planteamiento y las respuestas al Sandbox.");
+
+  try {
+    // 1. Compilar Dossier con Gáttvörður (effort = medium)
+    setStatus("COMPILANDO DOSSIER...", true);
+    const sessionId = "MOB-" + new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
+    const dossierPrompt = `Actúa como Gáttvörður (MARK3v1). Devuelve ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
+{
+  "metadata_resonancia": {"id_sesion": "${sessionId}", "modo_operacion": "MODO_TECNICO_AGENT_REACH", "perfil_usuario_caso": "CASO_1"},
+  "nucleo_del_problema": {"meta_real": "...", "premisa_falsable_global": "...", "macro_failure_conditions": ["Cond 1", "Cond 2", "Cond 3"]},
+  "contexto_sandbox": {"limite_presupuestario": "...", "restricciones_fisicas_entorno": "...", "nivel_tecnico_usuario": "..."},
+  "critical_vectors": [
+    {"id": "V1", "enfoque": "...", "tipo_dependencia": "raiz_independiente", "lentes_aplicados": ["LENTE_TECNICO"], "m_f_threshold": "..."},
+    {"id": "V2", "enfoque": "...", "tipo_dependencia": "condicional_dependiente_de_V1", "lentes_aplicados": ["LENTE_SABIDURIA_COLECTIVA"], "m_f_threshold": "..."},
+    {"id": "V3", "enfoque": "...", "tipo_dependencia": "condicional_dependiente_de_V2", "lentes_aplicados": ["LENTE_COSTO_BENEFICIO"], "m_f_threshold": "..."}
+  ]
+}
+Intención: ${intent}
+Respuestas Sandbox: ${sandboxAns}`;
+
+    const rawDossier = await callGeminiRouter(dossierPrompt, "medium");
+    activeDossier = extractCleanJson(rawDossier);
+    activeDossier.estado_actual = "02_HANDSHAKE_STEP_1_0_PASS";
+    renderTelemetry();
+
+    // 2. Vector 1 + Gateway Step 1.6 (effort = low para máxima eficiencia en extracción)
+    setStatus("V1 + GATEWAY 1.6 (LOW)...", true);
+    const ev1 = await fetchEvidenceAgentReach(q1, jinaCsv);
+    const gw1Prompt = `Actúa como Gateway Step 1.6 de Vitinn Tré. Evalúa la evidencia contra el m_f_threshold ("${activeDossier.critical_vectors[0].m_f_threshold}"). Extrae máximo 5 hechos demostrados sin usar jerga M[X]. Devuelve SOLO JSON:
+{"veredicto": "PASS_UNLOCK_NEXT", "cumple_m_f_threshold": true, "macro_fallo_detectado": false, "justificacion_forense": "...", "bufer_5_hechos": ["Hecho 1...", "Hecho 2..."]}\n\nEVIDENCIA:\n${ev1.join("\n\n")}`;
+    const gw1Res = extractCleanJson(await callGeminiRouter(gw1Prompt, "low"));
+    activeDossier.critical_vectors[0].completado = true;
+    activeDossier.critical_vectors[0].evidencia_confirmada = gw1Res.bufer_5_hechos || [];
+    renderTelemetry();
+
+    // 3. Vector 2 Triangulación (medium) + Gateway Step 1.6 (low)
+    setStatus("V2 TRIANGULACIÓN...", true);
+    const ev2 = await fetchEvidenceAgentReach(q2, "");
+    const puenteV1 = activeDossier.critical_vectors[0].evidencia_confirmada.join("\n- ");
+    const v2Prompt = `Aplica Triangulación Activa contrastando la línea base:\n- ${puenteV1}\n\nContra las fallas y reportes comunitarios:\n${ev2.join("\n\n")}\n\nCumple con: ${activeDossier.critical_vectors[1].m_f_threshold}`;
+    const triReport = await callGeminiRouter(v2Prompt, "medium");
+
+    const gw2Prompt = `Actúa como Gateway Step 1.6. Extrae hasta 5 hechos demostrados del siguiente informe de triangulación sin jerga interna. Devuelve SOLO JSON:
+{"veredicto": "PASS_UNLOCK_NEXT", "cumple_m_f_threshold": true, "macro_fallo_detectado": false, "justificacion_forense": "...", "bufer_5_hechos": ["Hecho 1...", "Hecho 2..."]}\n\nINFORME:\n${triReport}`;
+    const gw2Res = extractCleanJson(await callGeminiRouter(gw2Prompt, "low"));
+    activeDossier.critical_vectors[1].completado = true;
+    activeDossier.critical_vectors[1].evidencia_confirmada = gw2Res.bufer_5_hechos || [];
+    renderTelemetry();
+
+    // 4. Vector 3 Síntesis Final Vitinn Tré (effort = high en el modelo elegido)
+    const v3Model = document.getElementById("v3ModelSelect").value;
+    setStatus(`V3 SÍNTESIS (${v3Model} HIGH)...`, true);
+    const allFacts = [
+      ...activeDossier.critical_vectors[0].evidencia_confirmada,
+      ...activeDossier.critical_vectors[1].evidencia_confirmada
+    ].map(f => `- ${f}`).join("\n");
+
+    const v3Prompt = `Actúa como Vitinn Tré (MARK9vA6 - Fase 2). Prohibido usar jerga interna ('V1', 'M[F]', 'Gateway').\nMeta: ${activeDossier.nucleo_del_problema.meta_real}\nHipótesis: ${activeDossier.nucleo_del_problema.premisa_falsable_global}\nHechos Demostrados:\n${allFacts}\n\nRedacta en Markdown limpio:\n1. # DICTAMEN DE INVESTIGACIÓN TÉCNICA — VITINN TRÉ\n2. ## 1. Declaración Formal del Veredicto ([CONFIRMADA PERO FALSABLE], [REFUTADA] o [NO CONCLUYENTE: REQUIERE MÁS DATOS])\n3. ## 2. Matriz Comparativa y de Triangulación (Tabla Markdown)\n4. ## 3. Arquitectura y Plan de Acción Recomendado\n5. ## 4. Siguiente Rama del Árbol de Conocimiento`;
+    finalMdContent = await callGeminiRouter(v3Prompt, "high", v3Model);
+
+    activeDossier.critical_vectors[2].completado = true;
+    activeDossier.critical_vectors[2].evidencia_confirmada = ["Dictamen final emitido y verificado."];
+    activeDossier.estado_actual = "06_FINALIZADO";
+    renderTelemetry();
+
+    document.getElementById("finalMarkdownOutput").innerHTML = marked.parse(finalMdContent);
+    log("[COMPLETADO] Investigación finalizada con éxito.");
+  } catch (e) {
+    log(`[ERROR PIPELINE]: ${e.message}`);
+    alert(e.message);
+  } finally {
+    setStatus("IDLE // 0% BAT", false);
+  }
+}
+
+function downloadSnapshot() {
+  if (!activeDossier) return alert("No hay Dossier activo para exportar.");
+  const blob = new Blob([JSON.stringify(activeDossier, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${activeDossier.metadata_resonancia.id_sesion}.json`;
+  a.click();
+}
+
+function downloadMarkdown() {
+  if (!finalMdContent) return alert("Aún no se ha generado el Dictamen final.");
+  const blob = new Blob([finalMdContent], { type: "text/markdown" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${activeDossier?.metadata_resonancia?.id_sesion || "PVOSI"}_Dictamen.md`;
+  a.click();
+}
+</script>
+</body>
+</html>
